@@ -8,7 +8,7 @@
 % a good source of data can be found here:
 % http://www.vision.ee.ethz.ch/datasets_extra/food-101/
 
-location = 'F:\downloads\TrainData1\TrainData';%数据集路径
+location = 'F:\downloads\TrainData1\TrainData';%脢媒戮脻录炉脗路戮露
 imds = imageDatastore(location,'IncludeSubfolders',1,...
     'LabelSource','foldernames');
 tbl = countEachLabel(imds);
@@ -131,94 +131,8 @@ opts = trainingOptions('sgdm', ...
     'MiniBatchSize', miniBatchSize);
 
 net = trainNetwork(trainingDS, layers, opts);
-% save('C:\Users\Administrator\trainedNet.mat','net')
-% save('C:\Users\Administrator\testDS.mat','testDS')
-%135
+ save('C:\Users\Administrator\trainedNet.mat','net')
+ save('C:\Users\Administrator\testDS.mat','testDS')
 
-% This could take over an hour to run, so lets stop and load a pre-traiend
-% version that used the same data
-return % the script will stop here if you run the entire file
-%% Load in a previously saved network and test set
- load('C:\Users\Administrator\matlab\trainedNet5.mat')
- load('C:\Users\Administrator\matlab\testDS5.mat')
 
-%% Test 5-class classifier on  validation set
-% Now run the network on the test data set to see how well it does:
 
-[labels,err_test] = classify(net, testDS, 'MiniBatchSize', 64);
-
-confMat = confusionmat(testDS.Labels, labels);
-confMat = bsxfun(@rdivide,confMat,sum(confMat,2));
-
-mean(diag(confMat))
-
-%% Can we tell anything about the misses?
-idx = find(testDS.Labels == 'car');
-misses_only = find(labels(idx) ~= testDS.Labels(idx));
-misses_only = idx(misses_only);
-
-%% Check for misses
-for ii = 1: length(misses_only)
-    idx = misses_only(ii); 
-    extra = ' ';
-    imshow(imread(testDS.Files{idx})); 
-    if(err_test(idx) < .3)
-        extra = '?';
-    end
-    title(sprintf('%s %s',char(labels(idx)),extra)) ;
-    
-    pause;
-end
-
-%% Choose a random image and visualize the results
-randNum = randi(length(testDS.Files));
-im = readAndPreprocessImage(testDS.Files{randNum}) ;
-label = char(classify(net,im)); % classify with deep learning 
-imshow(im);
-title(label);
-%% We can also see how confident we are
-% less than a certain score also shows the second most likely option
-randNum = randi(length(testDS.Files));
-im = readAndPreprocessImage(testDS.Files{randNum}) ;
-[label,score] = classify(net,im); % classify with deep learning 
-imshow(im);
-imshow('C:\Users\Administrator\Desktop\timg.jpg');
-interesting_title = char(label);
-[max_score,idx] = sort(score,'descend');
-if(max_score < .66)
-    interesting_title = sprintf('%s? or \n');%[strcat(interesting_title,'? or  '), char(10)];
-    second = find(score == max_score(2));
-    interesting_title = strcat(interesting_title,' ',char(tbl.Label(second)));
-end
-title(interesting_title);
-
-%% Detect FOOD using CNN classification
-videoReader = vision.VideoFileReader('F:\download\datavideo\bdd100k_videos_test_00\cabe1040-5f02711e.mov');
-videoPlayer = vision.DeployableVideoPlayer;
-position = [35 185];
-position2 = [35 600];
-%%
-while ~isDone(videoReader)
-    %
-    i=0
-   
-    frame = step(videoReader);
-    im = im2uint8(imresize(frame, [227 227],'bilinear')) ;
-    im=imcrop(frame,[440 100 200 1080])
-    im = im2uint8(imresize(im ,[227 227]))
-    imwrite(im,'C:\Users\Administrator\Desktop\1.jpg')
-   
-    [YPred,probs] = classify(net,im);
- 
-  %  [label,score] = classify(net1,im); % classify with deep learning
-   
-   % RGB = insertText(frame,position,char(label),'FontSize',18,'TextColor','white','BoxColor','black');
-    %RGB = insertText(RGB,position2,sprintf('%.2f',round(max(score),2)),'FontSize',18,'TextColor','white','BoxColor','green');
-    RGB = insertText(frame,position,char(YPred),'FontSize',18,'TextColor','white','BoxColor','black');
-    RGB = insertText(RGB,position2,sprintf('%.2f',round(max(probs),2)),'FontSize',18,'TextColor','white','BoxColor','green');
-    step(videoPlayer,RGB);             
-    
-    
-end 
-release(videoReader); 
-release(videoPlayer);
