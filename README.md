@@ -13,4 +13,5 @@ PREPARATION
     2、run step by step in Food_Identification.m until line 135 .Remember to save net and testDS.
     location of dataset is in line 11 . the other parameter alter as ur wish.
    
-   3、
+   3、run the window.m and click "分类" ,outcome like this
+   ![Alt text](data.PNG)
